@@ -1,0 +1,419 @@
+@import "tailwindcss";
+
+/*
+ * Oxide & Ink design tokens (approved palette).
+ * Usage rules (see docs/03-design/brand_guidelines.md):
+ *  - Porcelain = page background, Ink = text and dark areas.
+ *  - Oxide = selective accent (primary button, active marker, small labels' dot).
+ *  - Soft Clay = gentle secondary surfaces.
+ *  - Stone = borders, dividers and decorative use. Its contrast on Porcelain is
+ *    below 4.5:1, so small supporting text uses Ink at reduced opacity instead.
+ */
+@theme {
+  --color-porcelain: #f4f1eb;
+  --color-ink: #191a1c;
+  --color-oxide: #b84c38;
+  --color-clay: #e4d4cb;
+  --color-stone: #797a76;
+
+  --font-heading: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-instrument-serif), ui-serif, Georgia, serif;
+
+  --container-page: 75rem;
+
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+@layer base {
+  html {
+    background: var(--color-porcelain);
+    color: var(--color-ink);
+    scroll-behavior: smooth;
+    /* keeps anchored sections clear of the sticky header */
+    scroll-padding-top: 5rem;
+    /* How long hero content waits for the brand intro (0 when intro is skipped) */
+    --intro-delay: 2.3s;
+  }
+
+  html[data-intro="off"],
+  html[data-intro="skip"] {
+    --intro-delay: 0s;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: var(--color-clay);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-oxide);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  /* On dark (Ink) surfaces use a light focus ring */
+  .on-ink :focus-visible {
+    outline-color: var(--color-porcelain);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Brand intro (CSS-only timeline: ~2.9s; JS only adds skip + cleanup) */
+/* ------------------------------------------------------------------ */
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: var(--color-porcelain);
+  /* The page underneath stays reachable; only the skip button takes clicks */
+  pointer-events: none;
+  animation: intro-exit 0.65s var(--ease-in-out-quart) 2.2s forwards;
+}
+
+.intro.intro-skip {
+  animation: intro-fade 0.35s ease forwards;
+}
+
+.intro-word {
+  display: flex;
+  align-items: baseline;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: clamp(3.75rem, 17vw, 10rem);
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--color-ink);
+}
+
+.intro-letter {
+  display: inline-block;
+  overflow: hidden;
+  padding: 0.04em 0.01em 0.1em;
+}
+
+.intro-letter > span {
+  display: inline-block;
+  transform: translateX(-115%);
+  animation: intro-in 0.85s var(--ease-out-expo) calc(0.2s + var(--i) * 0.14s) forwards;
+}
+
+.intro-dot {
+  display: inline-block;
+  width: 0.13em;
+  height: 0.13em;
+  margin-left: 0.05em;
+  border-radius: 50%;
+  background: var(--color-oxide);
+  transform: scale(0);
+  animation: intro-dot 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 1.4s forwards;
+}
+
+.intro-sub {
+  margin-top: 0.75rem;
+  text-align: center;
+  font-size: clamp(0.7rem, 2vw, 0.95rem);
+  font-weight: 600;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+  opacity: 0;
+  animation: intro-sub 0.7s ease 1.55s forwards;
+}
+
+.intro-skip-btn {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  pointer-events: auto;
+  min-height: 2.75rem;
+  padding: 0 1.25rem;
+  border: 1px solid var(--color-ink);
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.intro-skip-btn:hover {
+  background: var(--color-ink);
+  color: var(--color-porcelain);
+}
+
+@keyframes intro-in {
+  to { transform: translateX(0); }
+}
+@keyframes intro-dot {
+  to { transform: scale(1); }
+}
+@keyframes intro-sub {
+  to { opacity: 0.75; }
+}
+@keyframes intro-exit {
+  to { transform: translateY(-100%); visibility: hidden; }
+}
+@keyframes intro-fade {
+  to { opacity: 0; visibility: hidden; }
+}
+
+html[data-intro="off"] .intro {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Hero entrance                                                       */
+/* ------------------------------------------------------------------ */
+.mask-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+
+.mask-line > span {
+  display: block;
+  transform: translateY(105%);
+  animation: rise 0.9s var(--ease-out-expo) calc(var(--intro-delay) + var(--d, 0s)) forwards;
+}
+
+.fade-up {
+  opacity: 0;
+  transform: translateY(14px);
+  animation: fade-up 0.8s var(--ease-out-expo) calc(var(--intro-delay) + var(--d, 0s)) forwards;
+}
+
+@keyframes rise {
+  to { transform: translateY(0); }
+}
+@keyframes fade-up {
+  to { opacity: 1; transform: none; }
+}
+
+/* Hero illustration: outlines draw in, fills fade in */
+.hv-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw 1.4s var(--ease-out-expo) calc(var(--intro-delay) + var(--d, 0s)) forwards;
+}
+
+.hv-fade {
+  opacity: 0;
+  animation: fade-in 0.9s ease calc(var(--intro-delay) + var(--d, 0s)) forwards;
+}
+
+.hv-pop {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0.6);
+  animation: pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) calc(var(--intro-delay) + var(--d, 0s)) forwards;
+}
+
+.hv-float {
+  animation: float 7s ease-in-out calc(var(--intro-delay) + 2s) infinite;
+}
+
+@keyframes draw {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes fade-in {
+  to { opacity: 1; }
+}
+@keyframes pop {
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* ------------------------------------------------------------------ */
+/* Scroll reveal (only elements below the fold are ever hidden, by JS)  */
+/* ------------------------------------------------------------------ */
+.reveal[data-reveal="hidden"] {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.reveal[data-reveal="in"] {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.8s ease var(--reveal-delay, 0ms),
+    transform 0.8s var(--ease-out-expo) var(--reveal-delay, 0ms);
+}
+
+/* Process timeline: connector lines draw as each step arrives */
+.step {
+  position: relative;
+  padding-left: 3.25rem;
+}
+
+.step::before {
+  content: "";
+  position: absolute;
+  left: 1rem;
+  top: 2.5rem;
+  bottom: -2.5rem;
+  width: 1px;
+  background: color-mix(in srgb, var(--color-ink) 28%, transparent);
+  transform-origin: top;
+  transition: transform 0.9s var(--ease-out-expo) calc(var(--reveal-delay, 0ms) + 250ms);
+}
+
+.step:last-child::before {
+  display: none;
+}
+
+.step[data-reveal="hidden"]::before {
+  transform: scaleY(0);
+}
+
+.step-num {
+  position: absolute;
+  left: 0;
+  top: 0.15rem;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--color-ink);
+  border-radius: 9999px;
+  background: var(--color-porcelain);
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.step:last-child .step-num {
+  background: var(--color-oxide);
+  border-color: var(--color-oxide);
+  color: var(--color-porcelain);
+}
+
+@media (min-width: 768px) {
+  .step {
+    padding-left: 0;
+    padding-top: 3.25rem;
+  }
+
+  .step::before {
+    left: 2.5rem;
+    right: -1.5rem;
+    top: 1.15rem;
+    bottom: auto;
+    width: auto;
+    height: 1px;
+    transform-origin: left;
+  }
+
+  .step[data-reveal="hidden"]::before {
+    transform: scaleX(0);
+  }
+
+  .step-num {
+    top: 0.15rem;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Small interaction details                                           */
+/* ------------------------------------------------------------------ */
+.nav-link {
+  padding-block: 0.5rem;
+  background: linear-gradient(var(--color-oxide), var(--color-oxide)) left bottom / 0 2px no-repeat;
+  transition: background-size 0.3s var(--ease-out-expo);
+}
+
+.nav-link:hover,
+.nav-link:focus-visible {
+  background-size: 100% 2px;
+}
+
+.link-arrow {
+  display: inline-block;
+  transition: transform 0.25s var(--ease-out-expo);
+}
+
+.group:hover .link-arrow,
+.group:focus-visible .link-arrow {
+  transform: translateX(4px);
+}
+
+/* Subtle image treatment for project media */
+.media-zoom img {
+  transition: transform 0.9s var(--ease-out-expo);
+}
+
+.group:hover .media-zoom img {
+  transform: scale(1.04);
+}
+
+/* Respect the visitor's reduced-motion setting everywhere */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .intro {
+    display: none;
+  }
+
+  .mask-line > span,
+  .fade-up,
+  .hv-draw,
+  .hv-fade,
+  .hv-pop,
+  .hv-float {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+    stroke-dashoffset: 0;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+  }
+}
+
+/* Music toggle: bars move gently while music plays (collapsed by the reduced-motion rule above) */
+.music-bar {
+  animation: music-bar 1s ease-in-out infinite;
+}
+
+@keyframes music-bar {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
